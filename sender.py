@@ -13,7 +13,7 @@ class Sender:
         self.password = password
 
     def send(self, email, file_name):
-        print "Sending email to " + email
+        print "Sending " + file_name + " to " + email
         msg = MIMEMultipart()
         msg['From'] = self.email
         msg['To'] = email

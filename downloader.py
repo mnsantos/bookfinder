@@ -11,7 +11,7 @@ class Downloader:
         #e = lt.bdecode(open("test.torrent", 'rb').read())
         #info = lt.torrent_info(e)
 
-        params = { 'save_path': 'download/'}
+        params = { 'save_path': 'download/', 'name': 'lpm'}
         link = magnet_link
         handle = lt.add_magnet_uri(ses, link, params)
 
@@ -21,6 +21,7 @@ class Downloader:
         while (handle.status().state != lt.torrent_status.seeding):
             print '%d %% done' % (handle.status().progress*100)
             time.sleep(1)
+        return "download/" + handle.name()
 
         # h = ses.add_torrent(params)
 

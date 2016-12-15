@@ -28,6 +28,5 @@ class Finder:
 		print "Making request to " + book.link
 		response = urllib2.urlopen(book.link)
 		soup = BeautifulSoup(response, 'html.parser')
-		return soup.find("btn-toolbar2").find("btn-group").find("a").get("href")
-
+		return soup.find("div", class_="btn-toolbar2").find("div", class_="btn-group").find("a").get("href")
 

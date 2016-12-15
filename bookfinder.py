@@ -17,7 +17,7 @@ bot.
 """
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import InlineQueryResultArticle, ParseMode, InputTextMessageContent, ReplyKeyboardMarkup, ReplyKeyboardHide
+from telegram import InlineQueryResultArticle, ParseMode, InputTextMessageContent, ReplyKeyboardMarkup, ReplyKeyboardHide, ParseMode
 import logging
 from finder import Finder
 from downloader import Downloader
@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 finder = Finder()
 downloader = Downloader()
 converter = Converter()
+sender = Sender("bookfinder1301@gmail.com", "windows123")
 books = dict()
 
 
@@ -51,26 +52,28 @@ def echo(bot, update):
 
 def find(bot, update, args):
     # print "Searching books with name " + " ".join(args)
-    # chat_id = update.message.chat_id
-    # available_books = finder.find(" ".join(args))
-    # books[chat_id] = available_books
-    # book_names = [book.name for book in available_books]
-    # print "Books found: " + str(book_names)
+    chat_id = update.message.chat_id
+    available_books = finder.find(" ".join(args))
+    books[chat_id] = available_books
+    text = "\n".join([book.name + " -> /send " + str(ind) for ind, book in enumerate(available_books)])
+    print "Books found: " + str(available_books)
     # book_names = ["Las mil y una noches", "Cien aos de soledad", "/La fundacion"]
     # update.message.reply_text("/test")
-    bot.sendMessage(text='*bold text*')
+    # bot.sendMessage(chat_id=chat_id, text="*bold* /test _italic_ `fixed width font` [link](http://google.com).", parse_mode=ParseMode.MARKDOWN)
+    bot.sendMessage(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
 
-def send(bot, update, email):
+
+def send(bot, update, args):
     chat_id = update.message.chat_id
     if chat_id in books:
-        magnet_link = finder.magnet_link(books[chat_id])
-        file = converter.to_mobi(downloader.download(magnet_link))
-        sender.send(file, email)
-        update.message.reply_text("Your book was sended to " + email)
+        book_selected = books[chat_id][int(args[0])]
+        magnet_link = finder.magnet_link(book_selected)
+        file_name = converter.convert(downloader.download(magnet_link))
+        print file_name
+        sender.send(args[1], file_name)
+        update.message.reply_text("Your book was sended to " + args[1])
     else:
-        update.message.reply_text("First you have to search a book")
-    
-    
+        update.message.reply_text("First you have to search a book") 
 
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
