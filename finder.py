@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import urllib2
 from book import Book
+import logging
 
 class Finder:
 
@@ -10,23 +11,30 @@ class Finder:
 	def find(self, book_name):
 		book_name = book_name.replace(" ", "%20")
 		url = self.url + book_name
-		print "Making request to " + url
+		logging.info("Making request to " + url)
 		response = urllib2.urlopen(url)
-		soup = BeautifulSoup(response, 'html.parser')
+		soup = BeautifulSoup(response, 'html.parser', from_encoding="utf-8")
 		
 		book_divs = soup.find_all("div", class_="span2 pad_t_20 ali_centro txt_blanco")
 
 		books = []
 		for book_div in book_divs:
-			ancher_element = book_div.find("a")
-			book_name = ancher_element.get("title")
-			book_link = ancher_element.get("href")
-			books.append(Book(book_name, book_link))
+			anchor_elem = book_div.find("a")
+			book_name = anchor_elem.get("title")#.encode('ascii', 'ignore').decode('ascii')
+			book_link = anchor_elem.get("href")
+			book_author = book_div.find("div", class_="texto-portada").find("h2").text#.encode('ascii', 'ignore').decode('ascii')
+			books.append(Book(book_name, book_author, book_link))
 		return books
 
-	def magnet_link(self, book):
-		print "Making request to " + book.link
+	def summary(self, book):
+		logging.info("Making request to " + book.link)
 		response = urllib2.urlopen(book.link)
-		soup = BeautifulSoup(response, 'html.parser')
+		soup = BeautifulSoup(response, 'html.parser', from_encoding="utf-8")
+		return soup.find("div", class_="detalle").find("div", class_="ali_justi").find("span").text#.encode('ascii', 'ignore').decode('ascii')
+
+	def magnet_link(self, book):
+		logging.info("Making request to " + book.link)
+		response = urllib2.urlopen(book.link)
+		soup = BeautifulSoup(response, 'html.parser', from_encoding="utf-8")
 		return soup.find("div", class_="btn-toolbar2").find("div", class_="btn-group").find("a").get("href")
 

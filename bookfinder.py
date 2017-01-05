@@ -36,6 +36,8 @@ converter = Converter()
 sender = Sender("bookfinder1301@gmail.com", "windows123")
 books = dict()
 
+ERROR_MESSAGE = "Some error occurred. Please try again"
+
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
@@ -51,29 +53,49 @@ def echo(bot, update):
     update.message.reply_text(update.message.text)
 
 def find(bot, update, args):
-    # print "Searching books with name " + " ".join(args)
+    logging.info("Searching books with name " + " ".join(args))
     chat_id = update.message.chat_id
-    available_books = finder.find(" ".join(args))
-    books[chat_id] = available_books
-    text = "\n".join([book.name + " -> /send " + str(ind) for ind, book in enumerate(available_books)])
-    print "Books found: " + str(available_books)
-    # book_names = ["Las mil y una noches", "Cien aos de soledad", "/La fundacion"]
-    # update.message.reply_text("/test")
-    # bot.sendMessage(chat_id=chat_id, text="*bold* /test _italic_ `fixed width font` [link](http://google.com).", parse_mode=ParseMode.MARKDOWN)
+    try:
+        available_books = finder.find(" ".join(args))
+        books[chat_id] = available_books
+        text = "\n".join([book.name + ", " + book.author + " -> /send " + str(ind) + ", /summary " + str(ind) for ind, book in enumerate(available_books)])
+#        logging.info("Books found: " + str([str(book.name) for book in available_books]))
+    except Exception as e:
+        logging.error(e, exc_info=True)
+        text = ERROR_MESSAGE + " " + e.message
     bot.sendMessage(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
 
-
+   
+def summary(bot, update, args):
+    chat_id = update.message.chat_id
+    logging.info("Showing description for " + books[chat_id][int(args[0])].name)
+    try:
+        if chat_id in books:
+            book_selected = books[chat_id][int(args[0])]
+            description = finder.summary(book_selected)
+            update.message.reply_text(description)
+        else:
+            update.message.reply_text("First you have to search a book") 
+    except Exception as e:
+        logging.error(e, exc_info=True)
+        update.message.reply_text(ERROR_MESSAGE + " " + e.message) 
+   
 def send(bot, update, args):
     chat_id = update.message.chat_id
-    if chat_id in books:
-        book_selected = books[chat_id][int(args[0])]
-        magnet_link = finder.magnet_link(book_selected)
-        file_name = converter.convert(downloader.download(magnet_link))
-        print file_name
-        sender.send(args[1], file_name)
-        update.message.reply_text("Your book was sended to " + args[1])
-    else:
-        update.message.reply_text("First you have to search a book") 
+    logging.info("Sending book " + books[chat_id][int(args[0])].name)
+    try:
+        if chat_id in books:
+            book_selected = books[chat_id][int(args[0])]
+            magnet_link = finder.magnet_link(book_selected)
+            file_name = converter.convert(downloader.download(magnet_link))
+            sender.send(args[1], file_name)
+            update.message.reply_text("Your book was sent to " + args[1])
+        else:
+            update.message.reply_text("First you have to search a book") 
+    except Exception as e:
+        logging.error(e, exc_info=True)
+        update.message.reply_text(ERROR_MESSAGE + " " + e.message) 
+
 
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
@@ -91,6 +113,7 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("find", find, pass_args=True))
     dp.add_handler(CommandHandler("send", send, pass_args=True))
+    dp.add_handler(CommandHandler("summary", summary, pass_args=True))
     dp.add_handler(CommandHandler("help", help))
 
     # on noncommand i.e message - echo the message on Telegram
@@ -99,10 +122,10 @@ def main():
     # log all errors
     dp.add_error_handler(error)
 
-    updater.start_webhook(listen="0.0.0.0",
-                      port=8080,
-                      url_path=TOKEN)
-    updater.bot.setWebhook("https://bookfinder1301.herokuapp.com/" + TOKEN)
+    # updater.start_webhook(listen="0.0.0.0",
+    #                   port=8080,
+    #                   url_path=TOKEN)
+    # updater.bot.setWebhook("https://bookfinder1301.herokuapp.com/" + TOKEN)
 
     # Start the Bot
     updater.start_polling()

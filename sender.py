@@ -4,6 +4,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
+import logging
 
 
 class Sender:
@@ -13,7 +14,7 @@ class Sender:
         self.password = password
 
     def send(self, email, file_name):
-        print "Sending " + file_name + " to " + email
+        logging.info("Sending " + file_name + " to " + email)
         msg = MIMEMultipart()
         msg['From'] = self.email
         msg['To'] = email
