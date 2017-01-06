@@ -94,7 +94,7 @@ def more(bot, update):
    
 def summary(bot, update, args):
     chat_id = update.message.chat_id
-    logging.info("Showing description for " + books[chat_id][int(args[0])].name)
+    logging.info("Showing description for " + books[chat_id].books[int(args[0])].name)
     try:
         if chat_id in books:
             book_selected = books[chat_id].books[int(args[0])]
@@ -111,7 +111,7 @@ def send(bot, update, args):
     logging.info("Sending book " + books[chat_id].books[int(args[0])].name)
     try:
         if chat_id in books:
-            book_selected = books[chat_id][int(args[0])]
+            book_selected = books[chat_id].books[int(args[0])]
             magnet_link = finder.magnet_link(book_selected)
             file_name = converter.convert(downloader.download(magnet_link))
             sender.send(args[1], file_name)
