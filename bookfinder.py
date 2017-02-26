@@ -23,6 +23,7 @@ from finder import Finder
 from downloader import Downloader
 from sender import Sender
 from converter import Converter
+import os
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -156,7 +157,14 @@ def main():
     # updater.bot.setWebhook("https://bookfinder1301.herokuapp.com/" + TOKEN)
 
     # Start the Bot
-    updater.start_polling()
+    #updater.start_polling()
+
+    PORT = int(os.environ.get('PORT', '5000'))
+
+    updater.start_webhook(listen="0.0.0.0",
+                      port=PORT,
+                      url_path=TOKEN)
+    updater.bot.setWebhook("https://bookfinder1301.herokuapp.com/" + TOKEN)
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
