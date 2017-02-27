@@ -5,4 +5,4 @@ httplib2==0.9.1
 python-telegram-bot==5.2.0
 urllib3==1.19.1
 ./libtorrent-libtorrent-1_1_1/bindings/python
-python-libtorrent==1.0.7
+python-libtorrent==1.1.1
